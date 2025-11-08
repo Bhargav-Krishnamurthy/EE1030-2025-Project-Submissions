@@ -1,0 +1,853 @@
+\let\negmedspace\undefined
+\let\negthickspace\undefined
+\documentclass[journal,12pt,onecolumn]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[noend]{algpseudocode}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} 
+\usepackage{caption}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{txfonts}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage{gensymb}
+\usepackage{comment}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{tkz-euclide} 
+\usepackage{listings}
+\usepackage{gvv}                                        
+%\def\inputGnumericTable{}                                 
+\usepackage[latin1]{inputenc}                                
+\usepackage{color}                                            
+\usepackage{array}                                            
+\usepackage{longtable}                                       
+\usepackage{calc}   
+\usepackage{multicol}
+\usepackage{multirow}                                         
+\usepackage{hhline}                                           
+\usepackage{ifthen}                                           
+\usepackage{lscape}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{circuitikz}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{problem}{Problem}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{example}{Example}[section]
+\newtheorem{definition}[problem]{Definition}
+\newcommand{\BEQA}{\begin{eqnarray}}
+\newcommand{\nCr}[2]{\,^{#1}C_{#2}}
+\newcommand{\EEQA}{\end{eqnarray}}
+
+\begin{document}
+\color{black}
+\normalcolor
+
+\vspace{3cm}
+\title{IMAGE COMPRESSION USING TRUNCATED SVD WITH QR-BASED EIGENVALUE DECOMPOSITION - SOFTWARE PROJECT}
+\author{Bhargav K - EE25BTECH11013}
+\maketitle
+
+\newpage
+\tableofcontents
+
+\newpage
+\bigskip
+
+\section{\textbf{INTRODUCTION}}
+Any digital image consists of a huge number of pixels, where each pixel stores colour information. For grayscale images, these pixel values can be represented in a matrix form $\mathbf{A} \in \mathbf{R}^ { m \times n}$, where m and n are the number of rows and columns respectively. The pixel values usually range from 0(black) to 255(white). As the resolution of the image increases, the size of these matrices grow tremendously, thereby occupying more storage. Thus, efficient ways of image compression are required  in signal processing and machine learning and many other fields.
+\\ \\ \\
+\section{\textbf{SINGULAR VALUE DECOMPOSITION}}
+To solve this problem, the method of Singular Value Decomposition(SVD) can be used. In this method, any matrix can be represented as the product of 3 other simpler matrices. These 3 matrices contribute to the geometric feature of the original matrix. 
+\begin{align}
+    \vec{A} = \vec{U}\vec{\Sigma}\vec{V^T}
+\end{align}
+where $\vec{U}$ and $\vec{V^T}$ are the orthogonal matrices containing the left and right singular vectors respectively.
+\\
+$\vec{\Sigma}$ is a diagonal matrix consisting of the singular values.
+\\
+These singular values capture the amount of information about the image along each principal direction.   
+\\ \\ \\
+\section{\textbf{TRUNCATED SVD}}
+A remarkable property of SVD is that the image can be accurately approximated by retaining only the largest $k$ singular values by discarding the smaller ones. This produces a matrix
+\begin{align}
+    \vec{A}_k = \vec{U}_k\vec{\Sigma}_k\vec{V^T}_k
+\end{align}
+which is a k-rank matrix(Since all the columns are linearly independent).
+This matrix captures the most significant features of the image while using much less data. 
+\\ \\ \\
+\section{\textbf{SUMMARY OF DR GILBERT STRANG'S VIDEO}}
+
+Any matrix can be written as
+\begin{align}
+    \vec{A} = \vec{U}\vec{\Sigma}\vec{V}^T
+\end{align}
+where $\vec{U}$ and $\vec{V^T}$ are the orthogonal matrices, $\vec{\Sigma}$ is a diagonal matrix consisting of the singular values.
+
+Eigenvalue decomposition can be used only for square matrices, while SVD can be used for any rectangular or non-symmetric matrices.
+
+A matrix acts as a linear map from one vector space to another. SVD decomposes the matrix into 3 simpler operations: 
+\\
+(1) reflection/rotation $\vec{V^T}$ \\
+(2) stretching $\Sigma$ \\
+(3) Second rotation/reflection $\vec{U}$ \\   
+\\ 
+The matrix $\vec{V^T}$ rotates the input space, $\vec{\Sigma}$ scales the result along the new axis, $\vec{U}$ rotates the final output. \\
+Singular Values indicate the importance of each component of the transformation. 
+\\
+Some singular values may have value = 0, and these contribute to the null space of the matrix $\vec{A}$. Larger singular values correspond to larger stretches of the transformation. \\ \\
+(1) Finding $\vec{V}$ and $\vec{\Sigma}$:\\ \\
+Multiply $\vec{A}^T$ and $\vec{A}$
+\begin{align}
+    \vec{A}^T\vec{A} = \brak{\vec{V}\vec{\Sigma}^T\vec{U}^T}\brak{\vec{U}\vec{\Sigma}\vec{V}^T}
+\end{align}
+\begin{align}
+    \vec{A}^T\vec{A} = \vec{V}\vec{\Sigma}^2 = \vec{V} \vec{\Sigma}^T \brak{\vec{U}^T \vec{U}} \vec{\Sigma} \vec{V}^T
+\end{align}
+Since $\vec{U}$ is an orthogonal matrix, $\vec{U}^T\vec{U} = \vec{I}$.
+Also, $\vec{\Sigma}$ is a diagonal matrix. So $\vec{\Sigma}^T\vec{\Sigma} = \vec{\Sigma}^2$
+\begin{align}
+    \vec{A}^T\vec{A} = \vec{V}\vec{\Sigma}^2\vec{V}^T
+\end{align}
+Here $\vec{V}$ contain the eigenvectors of $\vec{A}^T\vec{A}$.\\
+So, after finding the expression of $\vec{A}^T\vec{A}$, we find the square root of the diagonal elements of the $\vec{\Sigma}^2$, which gives the singular values of the matrix $\vec{A}$. \\ \\
+(2) Finding $\vec{U}$: \\ \\
+Multiply $\vec{A}$ and $\vec{A}^T$
+\begin{align}
+    \vec{A}\vec{A}^T = \brak{\vec{U}\vec{\Sigma}\vec{V}^T}\brak{\vec{V}\vec{\Sigma}^T\vec{U}^T}
+\end{align}
+Since $\vec{V}$ is an orthogonal matrix, $\vec{V}^T\vec{V} = \vec{I}$.
+Also, $\vec{\Sigma}$ is a diagonal matrix. So $\vec{\Sigma}^T\vec{\Sigma} = \vec{\Sigma}^2$
+\begin{align}
+    \vec{A}\vec{A}^T = \vec{U}\vec{\Sigma}^2\vec{U}^T
+\end{align}
+Here $\vec{U}$ contain the eigenvectors of $\vec{A}\vec{A}^T$.\\
+Here $\vec{\Sigma}$ and $\vec{U}$ and $\vec{V}$ can be found out by finding the eigenvalues and eigenvectors appropriately.\\
+
+\section{\textbf{ALGORITHM AND MATHEMATICAL EXPLANATION - QR ITERATION-BASED EIGENVALUE DECOMPOSITION}}
+
+
+\subsection{Overview}
+
+The objective is to compute the truncated Singular Value Decomposition (SVD) of a matrix. 
+Given a matrix $\vec{A}$ of size $m \times n$, SVD decomposes it as:
+
+\begin{align}
+    \vec{A} = \vec{U}\,\vec{\Sigma}\,\vec{V}^T
+\end{align}
+
+where  
+$\vec{U}$ is $m \times m$ (left singular vectors),  
+$\vec{\Sigma}$ is $m \times n$ rectangular diagonal (singular values), and 
+$\vec{V}$ is $n \times n$ (right singular vectors).
+
+For truncated SVD, we retain only the top $k$ singular values:
+
+\begin{align}
+    \vec{A_k} = \vec{U_k}\,\vec{\Sigma_k}\,\vec{V_k}^T
+\end{align}
+
+
+\subsection{MATHEMATICAL BACKGROUND}
+
+\subsubsection{Relating SVD to Eigen Decomposition}
+
+We observe that  
+
+\begin{align}
+    \vec{A}^T\vec{A} = \vec{V}\vec{\Sigma}^2\vec{V}^T
+\end{align}
+
+Hence, the columns of $\vec{V}$ are eigenvectors of $\vec{A}^T \vec{A}$, and the eigenvalues are $\sigma_i^2$.
+
+Similarly,
+
+\begin{align}
+    \vec{A}\vec{A}^T = \vec{U}\vec{\Sigma}^2\vec{U}^T
+\end{align}
+
+Thus, we compute eigenvectors of $\vec{A}^T\vec{A}$ to get $\vec{V}$.  
+Then, each column $\vec{U_i}$ is computed using:
+
+\begin{align}
+    \vec{U_i} = \frac{\vec{A}\vec{V_i}}{\sigma_i}
+\end{align}
+
+
+\subsubsection{QR Iteration for Eigenvalues}
+
+To find eigenvalues of a symmetric matrix, 
+we repeatedly perform QR decomposition. \\
+
+\subsubsection{Gram-Schmidt Orthogonalization}
+Given vectors $\vec{a}_1, \vec{a}_2, \ldots, \vec{a}_n$, we construct
+orthonormal vectors $\vec{q}_1, \vec{q}_2, \ldots, \vec{q}_n$ using
+
+\begin{align}
+\vec{q}_1 &= \frac{\vec{a}_1}{\norm{\vec{a}_1}}
+\end{align}
+\begin{align}
+\vec{q}_k &=
+\frac{
+\vec{a}_k - \displaystyle\sum_{i=1}^{k-1}
+\norm{ \vec{a}_k^{T}\vec{q}_i}\vec{q}_i
+}{
+\norm{
+\vec{a}_k - \displaystyle\sum_{i=1}^{k-1}
+\brak{ \vec{a}_k^{T}\vec{q}_i}\vec{q}_i
+}
+},
+\qquad k = 2,\ldots,n
+\end{align}
+
+Each new vector is formed by subtracting projections onto previously computed
+orthonormal vectors and normalizing.
+This leads to numerical stability and ensures $\vec{Q}^T$$\vec{Q}$ = $\vec{I}$.
+
+In practice, Modified Gram-Schmidt is preferred because it reduces
+accumulation of floating-point errors.
+
+
+For a given symmetric matrix $\vec{M}$:
+
+\begin{align}
+    \vec{M} = \vec{Q}\vec{R}
+\end{align}
+
+Then,
+
+\begin{align}
+    \vec{M_{\text{next}}} = \vec{R}\vec{Q}
+\end{align}
+
+Repeated iteration converges to an upper triangular matrix whose diagonal entries are eigenvalues.  
+Accumulating the $\vec{Q}$ matrices yields eigenvectors.
+
+
+
+
+\subsubsection{FINDING EIGENVECTORS BY QR ITERATION}
+In QR iteration, the eigenvectors of a symmetric matrix are obtained by repeatedly multiplying the orthogonal matrices $\vec{Q}$ from each QR decomposition.
+
+We start with
+\begin{align}
+    \vec{A} = \vec{Q_1}\vec{R_1}
+\end{align}
+
+Then get
+\begin{align}
+    \vec{A_1} = \vec{R_1}\vec{Q_1}
+\end{align}
+
+In the next iteration,
+\begin{align}
+    \vec{A_1} = \vec{Q_2}\vec{R_2}
+\end{align}
+\begin{align}
+    \vec{A_2} = \vec{R_2}\vec{Q_2}
+\end{align}
+
+Repeating this process for $k$ iterations yields
+\begin{align}
+    \vec{A_k} = \vec{R_k}\vec{Q_k}
+\end{align}
+
+
+Define
+\begin{align}
+    \vec{Q_{\text{tot}}} = \vec{Q_1 Q_2 \cdots Q_k}
+\end{align}
+
+
+\begin{align}
+\vec{A}_k = \vec{Q}_{k-1}^{T}\vec{A}_{k-1}\vec{Q}_{k-1}
+\end{align}
+
+Further expanding $\vec{A}_{k-1}$, we get:
+\begin{align}
+\vec{A}_k = \brak{\vec{Q}_1 \vec{Q}_2 \cdots \vec{Q}_{k-1}}^T \vec{A} \brak{\vec{Q}_1 \vec{Q}_2 \cdots \vec{Q}_{k-1}}
+\end{align}
+
+\begin{align}
+\implies    \vec{A_k} = \vec{Q_{\text{tot}}}^T \vec{A}\,\vec{Q_{\text{tot}}}
+\end{align}
+
+As $k$ increases, $\vec{A_k}$ converges to a diagonal matrix
+\begin{align}
+    \vec{A_k} \rightarrow \vec{\Lambda}
+\end{align}
+
+Therefore,
+\begin{align}
+    \vec{A} \approx \vec{Q_{\text{tot}}}\,\vec{\Lambda}\,\vec{Q_{\text{tot}}}^T
+\end{align}
+
+Hence, the columns of $\vec{Q_{\text{tot}}}$ are the eigenvectors of $\vec{A}$.
+
+In the implementation, this is achieved by initializing
+\begin{align}
+    \vec{V} = \vec{I}
+\end{align}
+
+where $\vec{I}$ is the identity matrix
+\begin{align}
+    \vec{I} = \myvec{
+        1 & 0 & \cdots & 0 \\
+        0 & 1 & \cdots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \cdots & 1
+    }
+\end{align}
+
+Then, during each iteration, we update
+\begin{align}
+    \vec{V} \gets \vec{V}\vec{Q}
+\end{align}
+
+After $k$ iterations, we obtain
+\begin{align}
+    \vec{V} = \vec{Q_1 Q_2 \cdots Q_k}
+\end{align}
+
+Thus, $\vec{V}$ converges to the eigenvector matrix.
+\subsection{Truncated SVD Algorithm}
+
+\subsubsection{Step 1: Compute \texorpdfstring{$\vec{A}^T\vec{A}$}{ATA}}
+
+\begin{align}
+    \vec{M} = \vec{A}^T \vec{A}
+\end{align}
+
+
+\subsubsection{Step 2: QR Iteration}
+
+Initialize $\vec{V}$ as identity
+
+\begin{align}
+    \vec{V} = \myvec{
+        1 & 0 & \cdots & 0 \\
+        0 & 1 & \cdots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \cdots & 1
+    }
+\end{align}
+
+Repeatedly:
+
+\begin{align}
+    \vec{M} = \vec{Q}\vec{R}
+\end{align}
+\begin{align}
+    \vec{M} = \vec{R}\vec{Q}
+\end{align}
+\begin{align}
+    \vec{V} = \vec{V}\vec{Q}
+\end{align}
+
+After iterations, diagonal entries of $\vec{M}$ approximate eigenvalues $\lambda_i$.
+
+
+\subsubsection{Step 3: Compute Singular Values}
+
+\begin{align}
+    \sigma_i = \sqrt{\lambda_i}
+\end{align}
+
+
+\subsubsection{Step 4: Compute \texorpdfstring{$\vec{U}$}{U}}
+
+\begin{align}
+    \vec{U_i} = \frac{\vec{A}\vec{V_i}}{\sigma_i}
+\end{align}
+
+
+Normalize $\vec{U_i}$.
+
+
+\subsubsection{Step 5: Truncate}
+
+Select top $k$ singular values and vectors:
+
+\begin{align}
+    \vec{U_k} = \brak{\vec{U_1}\;\vec{U_2}\;\cdots\;\vec{U_k}}
+\end{align}
+
+\begin{align}
+    \vec{\Sigma_k} = \myvec{
+        \sigma_1 & 0      & \cdots & 0 \\
+        0        & \sigma_2 & \cdots & 0 \\
+        \vdots   & \vdots   & \ddots & \vdots \\
+        0        & 0        & \cdots & \sigma_k
+    }
+\end{align}
+
+\begin{align}
+    \vec{V_k^T} = \brak{\vec{V_1}\;\vec{V_2}\;\cdots\;\vec{V_k}}^T
+\end{align}
+
+
+\subsubsection{Step 6: Reconstruct Approximation}
+
+\begin{align}
+    \vec{A_k} = \vec{U_k}\,\vec{\Sigma_k}\,\vec{V_k}^T
+\end{align}\\ 
+
+\subsection{Python Code}
+(1)Python code uses ctypes to interface Python with your C implementation of Truncated SVD.\\
+(2)Read the image using Matplotlib and converts NumPy arrays into double** pointers so they can be passed to C.\\
+(3)Stores the result from C into ../figs/\\
+(4)Shows the compressed image using matplotlib. \\
+(5)Calculates the Frobenius error between the original and reconstructed image and reports the normalized error.\\
+(6)Calculates the time taken to run the Truncated SVD function.
+
+\section{\textbf{PSEUDO-CODE}}
+
+\begin{align}
+\text{Input: } \vec{A},\; m,\; n,\; k
+\end{align}
+
+\begin{align}
+\vec{A}^T \gets \vec{A}
+\end{align}
+\begin{align}
+\vec{A}^T\vec{A} \gets \vec{A}^T \cdot \vec{A}
+\end{align}
+
+\subsection{Modified Gram--Schmidt Orthogonalisation}
+
+
+
+\textbf{Input: } $\vec{a}_1, \vec{a}_2, \ldots, \vec{a}_n$
+
+\textbf{Output: } $\vec{q}_1, \vec{q}_2, \ldots, \vec{q}_n$
+
+\begin{align}
+\vec{u}_k = \vec{a}_k
+\end{align}
+
+For $k = 1$ to $n$:
+
+\begin{align}
+\vec{q}_k = \frac{\vec{u}_k}{\|\vec{u}_k\|}
+\end{align}
+
+For $j = k+1$ to $n$:
+\begin{align}
+r_{kj} = \vec{q}_k^T \vec{u}_j
+\end{align}
+\begin{align}
+\vec{u}_j \gets \vec{u}_j - r_{kj}\vec{q}_k
+\end{align}
+
+\textbf{End}
+
+
+Perform QR iteration on $\vec{A}^T\vec{A}$ to obtain eigenvalues $\lambda_i$ and eigenvectors $\vec{V}$
+
+% \begin{algorithm}[H]
+% \caption{Truncated SVD via QR Iteration}
+% \begin{algorithmic}[1]
+
+% \STATE Input: $\vec{A}$
+
+% \STATE $\vec{M} \gets \vec{A}^{\top}\vec{A}$
+% \STATE $\vec{V} \gets I$
+
+% \WHILE{not converged}
+%     \STATE $[Q,R] \gets QR(\vec{M})$
+%     \STATE $\vec{M} \gets RQ$
+%     \STATE $\vec{V} \gets \vec{V}Q$
+% \ENDWHILE
+
+% \STATE Extract diagonal entries $\lambda_i$ from $\vec{M}$
+% \STATE $\sigma_i \gets \sqrt{\lambda_i}$
+% \STATE $\vec{u}_i \gets \dfrac{1}{\sigma_i}\vec{A}\vec{v}_i$
+% \end{algorithmic}
+% \end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Truncated SVD via QR Iteration}
+\begin{algorithmic}[1]
+
+\STATE Input: $\vec{A}$
+
+\STATE $\vec{M} \gets \vec{A}^{\top}\vec{A}$
+\STATE $\vec{V} \gets I$
+
+\WHILE{not converged}
+    \STATE $[Q,R] \gets QR(\vec{M})$
+    \STATE $\vec{M} \gets RQ$
+    \STATE $\vec{V} \gets \vec{V}Q$
+\ENDWHILE
+
+\STATE Extract diagonal entries $\lambda_i$ from $\vec{M}$
+\STATE $\sigma_i \gets \sqrt{\lambda_i}$
+\STATE $\vec{u}_i \gets \dfrac{1}{\sigma_i}\vec{A}\vec{v}_i$
+
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{align}
+\sigma_i = \sqrt{\lambda_i}
+\end{align}
+
+Sort singular values by using qsort (most efficient method for sorting)
+
+For each $i$:
+
+\begin{align}
+\vec{U}_i = \frac{\vec{A}\vec{V}_i}{\sigma_i}
+\end{align}
+
+Normalize $\vec{U_i}$.
+
+Form:
+
+\begin{align}
+\vec{A_k} = \vec{U_k}\,\vec{\Sigma_k}\,\vec{V_k}^T
+\end{align}
+
+Return $\vec{A_k}$.
+
+
+\section{\textbf{CHOICE OF ALGORITHM: SVD USING QR ITERATION}}
+
+In this project, I implemented truncated Singular Value Decomposition (SVD) using an iterative QR-based eigenvalue computation. Several possible algorithms were considered, including the Jacobi method, power iteration, and the full Golub--Kahan bidiagonalization approach. After evaluating implementation effort, numerical behavior, and suitability for image compression, the QR iteration method was selected. The main reasons are summarized below.
+
+\subsection{\textbf{Comparison With Other Algorithms}}
+\begin{itemize}
+    \item \textbf{Jacobi SVD:}
+    Although conceptually simple and highly accurate, the Jacobi algorithm converges slowly for medium--sized matrices. Its $O(n^3)$ complexity together with repeated plane rotations makes it practically inefficient for image sizes such as $256 \times 256$ or $512 \times 512$ and so on. Runtime is significantly longer. Jacobi relies on element-wise rotations, which leads to irregular memory access. Even if only a few singular values are required, this algorithm tends to operate on the entire matrix.
+    Also precision loss occurs when scaled to a large matrix because repeated transformations may cause rounding errors.
+    
+    \item \textbf{Power Iteration / Lanczos:}
+    Power iteration can compute only the largest singular value and corresponding singular vector. To extract multiple singular vectors, repeated deflation is required, which is numerically unstable and may not preserve orthogonality. Lanczos improves convergence but is significantly more complicated to implement reliably. Convergence slows dramatically when singular values are similar, making it unsuitable for similar image matrices.
+
+    \item \textbf{Golub--Kahan Bidiagonalization + Implicit QR:}
+    This method is used in industrial libraries (e.g: LAPACK) and yields excellent numerical accuracy. However, it requires Householder transformations, implicit QR steps, and careful implementation to avoid numerical breakdown. This complexity is beyond the scope of a low-level implementation without numerical libraries. This method is more complex to implement from scratch; standard libraries use it and can efficiently compute truncated SVD.
+    It will require extra memory to store householder vectors, intermediate bidiagonal form, perform QR iterations.
+\end{itemize}
+
+\subsection{\textbf{Advantages of QR Iteration SVD}}
+The QR iteration method offers an excellent trade--off between implementation complexity and numerical performance. Its advantages include:
+
+\begin{enumerate}
+    \item \textbf{Conceptually Straightforward:} 
+    The algorithm requires only matrix transpose, computing $\vec{A}^{T}\vec{A}$, QR factorization, and iterative refinement. These operations are simple to implement using basic linear algebra concepts.
+
+    \item \textbf{Numerical Stability:}
+    QR iteration is applied on $\vec{A}^{T}\vec{A}$, which is symmetric and positive semidefinite. For such matrices, QR iteration is known to be stable and to converge reliably to eigenvalues and eigenvectors.
+
+    \item \textbf{Finding $\vec{V}$:}
+    The eigenvectors of $\vec{A}^{T}\vec{A}$ give the right singular vectors $\vec{V}$. The left singular vectors can be recovered using:
+    \begin{align}
+        \vec{U} = \frac{\vec{A}\vec{V}}{\vec{\Sigma}}.
+    \end{align}
+    There is no necessity to find the eigenvectors of $\vec{A}\vec{A}^T$ again, as it is computationally double the efforts. 
+    \item \textbf{Support for Truncated SVD:}
+    Since image compression requires only the top $k$ singular components, the iteration can be terminated early after extracting $\vec{V}_k$ and $\vec{\Sigma}_k$, which improves efficiency. 
+
+    \item \textbf{No External Libraries Needed:}
+    All the necessary operations can be implemented in C from scratch. \\
+\end{enumerate}
+
+Hence, QR iteration was selected as it provides the best balance between feasibility, robustness, and educational clarity, while still giving accurate truncated SVD results suited for image compression.
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Complexity} & \textbf{Remarks} \\
+\hline
+Jacobi & $O(n^3)$ & Slow convergence \\
+Power Iteration & $O(kn^2)$ & Not orthogonal for multiple vectors \\
+QR Iteration & $O(n^3)$ & Good balance, stable \\
+Bidiagonalization + QR & $O(n^3)$ & Hard to implement \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+\subsection{Conclusion}
+We chose the QR-iteration SVD approach because it's much simpler to implement from scratch compared to bidiagonalization methods, while still being more stable than repeatedly using power iteration and generally faster than Jacobi-based techniques. It can efficiently compute truncated SVD, which is exactly what we need for image compression. The fact that it also works properly on colour images shows that the method is both flexible and reliable. \\ \\
+
+
+\section{\textbf{EXTENSION TO COLOUR IMAGES}}
+
+Although the project initially focuses on grayscale images, the implementation naturally extends to colour images. An RGB image can be expressed as three matrices:
+\begin{align}
+\vec{A}_R,\; \vec{A}_G,\; \vec{A}_B \in \mathbb{R}^{m \times n}.
+\end{align}
+The same SVD procedure is applied independently to each channel:
+\begin{align}
+\vec{A}_R \approx \vec{U}_R \vec{\Sigma}_R \vec{V}_R^T,\qquad
+\vec{A}_G \approx \vec{U}_G \vec{\Sigma}_G \vec{V}_G^T,\qquad
+\vec{A}_B \approx \vec{U}_B \vec{\Sigma}_B \vec{V}_B^T.
+\end{align}
+The reconstructed image is obtained by combining the three components:
+\begin{align}
+\vec{A} \approx (\vec{A}_R,\; \vec{A}_G,\; \vec{A}_B).
+\end{align}
+
+This method worked on colour images without needing to change the main SVD code, showing that the approach is flexible and not limited to grayscale inputs. In our experiments, the reconstructed RGB images still looked visually similar to the originals even when using a moderate rank k. This suggests that most of the important visual details in each colour channel are captured by only a small number of singular values.
+
+\section{\textbf{RECONSTRUCTED IMAGES FOR DIFFERENT K}}
+ 
+\begin{figure}[H]
+\centering
+
+
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k5_final_globe.jpg}
+    \caption{$k = 5$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k10_final_globe.jpg}
+    \caption{$k = 10$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k50_final_globe.jpg}
+    \caption{$k = 50$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k100_final_globe.jpg}
+    \caption{$k = 100$}
+\end{subfigure}
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/globe.jpg}
+    \caption{Original Image}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k5_final_einstein.jpg}
+    \caption{$k = 5$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k10_final_einstein.jpg}
+    \caption{$k = 10$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k50_final_einstein.jpg}
+    \caption{$k = 50$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k100_final_einstein.jpg}
+    \caption{$k = 100$}
+\end{subfigure}
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/einstein.jpg}
+    \caption{Original Image}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k5_final_greyscale.png}
+    \caption{$k = 5$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k10_final_greyscale.png}
+    \caption{$k = 10$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k50_final_greyscale.png}
+    \caption{$k = 50$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/k100_final_greyscale.png}
+    \caption{$k = 100$}
+\end{subfigure}
+\begin{subfigure}{0.15\textwidth}
+    \includegraphics[width=\linewidth]{figs/greyscale.png}
+    \caption{Original Image}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figs/k5_final_scenery.jpg}
+    \caption{$k = 5$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figs/k10_final_scenery.jpg}
+    \caption{$k = 10$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figs/k50_final_scenery.jpg}
+    \caption{$k = 50$}
+\end{subfigure}\hfill
+\begin{subfigure}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figs/k100_final_scenery.jpg}
+    \caption{$k = 100$}
+\end{subfigure}
+\begin{subfigure}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figs/scenery.jpg}
+    \caption{Original Image}
+\end{subfigure}
+
+\par\bigskip
+
+\caption{Reconstruction of four images across four values of $k$.}
+\end{figure}
+
+
+\section{\textbf{ERROR ANALYSIS}}
+
+Frobenius Error = $\norm{\vec{A} - \vec{A}_k}_F$ \\
+
+Normalised Frobenius Error = $\frac{\norm{\vec{A} - \vec{A}_k}_F}{\norm{\vec{A}}_F}$\\
+
+More is the Frobenius error, then less is the image quality and vice-versa.
+
+Because singular values are sorted in decreasing order, retaining more (
+k larger) captures more information of the image.\\
+
+
+Normalised Frobenius Error closer to 1, indicates the poorest image quality and
+closer to 0, indicates highest image quality. \\ \\
+The following graph and table are generated for the image (einstein.jpg) in /figs/einstein.jpg  \\
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.3\textheight, keepaspectratio]{figs/image_quality_graph.png}
+    \label{figure_1}
+\end{figure}
+
+The table is for einstein.jpg
+\input{tables/tables}
+\vspace{0.3cm}
+The table is for greyscale.png
+\input{tables/tables2}
+\vspace{0.3cm}
+The table is for globe.jpg
+\input{tables/tables3}
+\vspace{0.3cm}
+The table is for scenery.jpg
+\input{tables/tables4}
+\vspace{0.3cm}
+From these generated images and the graph, it can be observed that as k(number of singular values) increases, the frobenius error decreases. So image quality increases.
+
+\section{\textbf{DISCUSSION OF TRADE-OFFS AND REFLECTIONS ON IMPLEMENTATION CHOICE}}
+
+The objective of this project was to implement image compression using the Singular Value Decomposition (SVD). Several factors influence the balance between computational efficiency, accuracy, storage savings, and implementation complexity.
+
+\subsection{Choice of SVD with QR Iteration}
+
+In this work, the QR iteration method was chosen because it is conceptually simpler and can be implemented from scratch without depending on external numerical libraries such as LAPACK. The method computes eigenvalues of $\vec{A}^T\vec{A}$, from which singular values are obtained.
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item Conceptually easy to implement.
+    \item Does not depend on external libraries.
+    \item Produces valid singular values and vectors.
+    \item Naturally accommodates truncated SVD.
+\end{itemize}
+
+\textbf{Limitations:}
+\begin{itemize}
+    \item Computational complexity is high ($\mathcal{O}(mn^2)$).
+    \item Not very suitable for large matrices.
+    \item Convergence is slower than bidiagonalization approaches.
+\end{itemize}
+
+This results in significantly higher execution time for large images (e.g: $1024 \times 1024$).
+
+\subsection{Truncation Parameter $k$: Accuracy vs. Compression}
+
+Truncated SVD reconstructs
+\begin{align}
+\vec{A_k} = \vec{U_k}\,\vec{\Sigma_k}\,\vec{V_k}^T,
+\end{align}
+where $k$ controls the rank of approximation. The singular values decay rapidly, meaning most of the energy is captured within the first few components.
+
+\textbf{Observations:}
+\begin{itemize}
+    \item Small $k$: High compression, but poor quality (loss of detail).
+    \item Large $k$: Lower compression, but higher quality.
+\end{itemize}
+
+This introduces a trade-off between storage efficiency and accuracy.
+
+\subsection{Computational Trade-offs}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Method & Speed & Implementation Difficulty \\
+\hline
+QR-iteration SVD & Slow & Simple \\
+NumPy/LAPACK SVD & Fast & Requires library support \\
+Randomized SVD & Very Fast & Algorithmically complex \\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+Thus, although pedagogically valuable, the implementation is not computationally optimal.
+
+\subsection{Per-channel RGB Processing}
+
+The SVD is applied independently to each of the three color channels. This simplifies implementation but has some disadvantages.
+
+\textbf{Pros:}
+\begin{itemize}
+    \item Straightforward to implement.
+    \item No color-space conversion needed.
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+    \item Computation time is tripled (three channels - R,G,B).
+\end{itemize}
+
+
+\subsection{Memory vs. Accuracy}
+
+Storing $\vec{U_k}$, $\vec{\Sigma_k}$, and $\vec{V_k}$ requires
+\begin{align}
+k(m + n + 1)
+\end{align}
+
+This value should be less than the initial memory of the image (mn).\\
+\begin{align}
+k(m + n + 1) < mn
+\end{align}
+\begin{align}
+\implies k < \frac{mn}{1 + m + n}
+\end{align}
+
+So if the value of k is more than $\frac{mn}{1+m+n}$, then the image won't be compressed. Rather the memory of the final image will be more.
+
+\subsection{Reflections}
+
+The implementation demonstrates:
+\begin{itemize}
+    \item SVD effectively preserves most image information in the first few singular values.
+    \item Image quality increases monotonically with $k$.
+    \item There is an inherent trade-off between compression and accuracy.
+\end{itemize}
+
+However, it also highlights that practical systems rely on optimized numerical backends (e.g., LAPACK), and more efficient strategies such as randomized SVD can dramatically improve performance.
+
+\subsection{Conclusion}
+
+The QR-based truncated SVD implementation offers flexible compression and accurately demonstrates theoretical behavior. However, computational cost limits scalability. In practice, optimized SVD libraries or randomized approaches are recommended for real-time, large-scale applications. This work nevertheless provided meaningful insight into the numerical structure of image data and the working of SVD-based compression.
+
+\end{document}
